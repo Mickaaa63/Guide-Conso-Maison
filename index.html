@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide Interactif Conso Électrique Maison</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --accent: #38bdf8;
+    --accent2: #22c55e;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --hot: #f97316;
+    --warning: #eab308;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  header {
+    text-align: center;
+    padding: 2rem 1rem 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #38bdf8, #22c55e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .disclaimer {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    margin: 1rem auto;
+    max-width: 800px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .house {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto 3rem;
+  }
+  .room {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 1.2rem;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .room:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  }
+  .room-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .room-title span { font-size: 1.4rem; }
+  .equip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .equip {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 10px;
+    padding: 0.55rem 0.85rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    position: relative;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .equip:hover, .equip.active {
+    background: rgba(56, 189, 248, 0.28);
+    border-color: var(--accent);
+    transform: scale(1.04);
+  }
+  .equip.hot {
+    background: rgba(249, 115, 22, 0.15);
+    border-color: rgba(249, 115, 22, 0.4);
+  }
+  .equip.hot:hover, .equip.hot.active {
+    background: rgba(249, 115, 22, 0.3);
+    border-color: var(--hot);
+  }
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    width: 260px;
+    z-index: 100;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    font-size: 0.88rem;
+    pointer-events: none;
+  }
+  .equip:hover .tooltip, .equip.active .tooltip {
+    display: block;
+  }
+  .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 7px solid transparent;
+    border-top-color: var(--accent);
+  }
+  .tooltip strong { color: var(--accent); }
+  .tooltip .kwh { color: var(--accent2); font-weight: 700; }
+  .tooltip .power { color: var(--warning); }
+  .tooltip .note { color: var(--muted); font-size: 0.8rem; margin-top: 0.4rem; }
+  .legend {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+  }
+  .dot.normal { background: var(--accent); }
+  .dot.hot { background: var(--hot); }
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid rgba(148,163,184,0.1);
+  }
+  @media (max-width: 600px) {
+    .tooltip {
+      width: 220px;
+      font-size: 0.82rem;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏠 Guide Interactif – Conso Électrique Maison</h1>
+  <p>Survole (ou clique sur mobile) chaque équipement pour voir sa consommation typique</p>
+</header>
+
+<div class="disclaimer">
+  📊 Valeurs moyennes indicatives (sources ADEME & données 2025-2026). La consommation réelle dépend de la classe énergétique, de l’usage, du nombre d’occupants et de l’isolation. Prix approximatif : ~0,20–0,25 €/kWh.
+</div>
+
+<div class="legend">
+  <span><span class="dot normal"></span> Consommation classique</span>
+  <span><span class="dot hot"></span> Gros poste (fort impact facture)</span>
+</div>
+
+<div class="house">
+
+  <!-- SALON -->
+  <div class="room">
+    <div class="room-title"><span>🛋️</span> Salon</div>
+    <div class="equip-list">
+      <div class="equip" tabindex="0">
+        Télévision LED
+        <div class="tooltip">
+          <strong>Télévision LED (55")</strong><br>
+          Puissance : <span class="power">50 – 150 W</span><br>
+          Conso annuelle : <span class="kwh">150 – 180 kWh/an</span><br>
+          <div class="note">~6 h/jour. Les OLED récents consomment un peu plus.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Box Internet + Décodeur
+        <div class="tooltip">
+          <strong>Box + Décodeur TV</strong><br>
+          Puissance : <span class="power">15 – 30 W</span><br>
+          Conso annuelle : <span class="kwh">130 – 200 kWh/an</span><br>
+          <div class="note">Allumé quasi 24h/24 → poste souvent sous-estimé.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Console de jeux
+        <div class="tooltip">
+          <strong>Console (PS5 / Xbox…)</strong><br>
+          Puissance : <span class="power">100 – 200 W</span><br>
+          Conso annuelle : <span class="kwh">80 – 120 kWh/an</span><br>
+          <div class="note">~2–3 h/jour. Mode repos consomme encore un peu.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Éclairage LED
+        <div class="tooltip">
+          <strong>Éclairage (salon)</strong><br>
+          Puissance : <span class="power">10 – 60 W total</span><br>
+          Conso annuelle : <span class="kwh">30 – 50 kWh/an</span><br>
+          <div class="note">Maison entière ≈ 100–150 kWh/an avec LED.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Ordinateur fixe / PC
+        <div class="tooltip">
+          <strong>Ordinateur de bureau</strong><br>
+          Puissance : <span class="power">100 – 300 W</span><br>
+          Conso annuelle : <span class="kwh">100 – 250 kWh/an</span><br>
+          <div class="note">PC gamer peut monter beaucoup plus haut.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUISINE -->
+  <div class="room">
+    <div class="room-title"><span>🍳</span> Cuisine</div>
+    <div class="equip-list">
+      <div class="equip hot" tabindex="0">
+        Réfrigérateur combiné
+        <div class="tooltip">
+          <strong>Réfrigérateur combiné</strong><br>
+          Puissance : <span class="power">100 – 200 W</span> (cycles)<br>
+          Conso annuelle : <span class="kwh">280 – 350 kWh/an</span><br>
+          <div class="note">Tourne 24h/24. Classe A moderne ≈ 100–150 kWh.</div>
+        </div>
+      </div>
+      <div class="equip hot" tabindex="0">
+        Congélateur
+        <div class="tooltip">
+          <strong>Congélateur</strong><br>
+          Puissance : <span class="power">100 – 200 W</span><br>
+          Conso annuelle : <span class="kwh">250 – 320 kWh/an</span><br>
+          <div class="note">Un des plus gros postes hors chauffage.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Lave-vaisselle
+        <div class="tooltip">
+          <strong>Lave-vaisselle (12–14 couverts)</strong><br>
+          Puissance : <span class="power">1 200 – 2 200 W</span><br>
+          Conso annuelle : <span class="kwh">150 – 220 kWh/an</span><br>
+          <div class="note">~4–5 cycles/semaine. Mode Éco = ~0,7–1 kWh/cycle.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Four électrique
+        <div class="tooltip">
+          <strong>Four électrique</strong><br>
+          Puissance : <span class="power">2 000 – 3 000 W</span><br>
+          Conso annuelle : <span class="kwh">130 – 180 kWh/an</span><br>
+          <div class="note">~3–4 utilisations/semaine. Préchauffage gourmand.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Plaques induction
+        <div class="tooltip">
+          <strong>Plaques à induction</strong><br>
+          Puissance : <span class="power">2 000 – 7 000 W</span><br>
+          Conso annuelle : <span class="kwh">150 – 250 kWh/an</span><br>
+          <div class="note">Plus efficace que vitrocéramique (~20 % d’économie).</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Micro-ondes
+        <div class="tooltip">
+          <strong>Four à micro-ondes</strong><br>
+          Puissance : <span class="power">800 – 1 500 W</span><br>
+          Conso annuelle : <span class="kwh">35 – 50 kWh/an</span><br>
+          <div class="note">Très faible impact annuel malgré la puissance.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Cafetière / Expresso
+        <div class="tooltip">
+          <strong>Cafetière / Machine à café</strong><br>
+          Puissance : <span class="power">800 – 1 500 W</span><br>
+          Conso annuelle : <span class="kwh">40 – 80 kWh/an</span><br>
+          <div class="note">Les machines à capsules consomment un peu plus.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Bouilloire
+        <div class="tooltip">
+          <strong>Bouilloire électrique</strong><br>
+          Puissance : <span class="power">1 800 – 2 400 W</span><br>
+          Conso annuelle : <span class="kwh">50 – 100 kWh/an</span><br>
+          <div class="note">Ne chauffe que la quantité nécessaire.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALLE À MANGER -->
+  <div class="room">
+    <div class="room-title"><span>🍽️</span> Salle à manger</div>
+    <div class="equip-list">
+      <div class="equip" tabindex="0">
+        Éclairage
+        <div class="tooltip">
+          <strong>Éclairage salle à manger</strong><br>
+          Puissance : <span class="power">20 – 80 W</span><br>
+          Conso annuelle : <span class="kwh">20 – 40 kWh/an</span><br>
+          <div class="note">LED recommandées. Variateurs utiles.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Cave à vin
+        <div class="tooltip">
+          <strong>Cave à vin</strong><br>
+          Puissance : <span class="power">80 – 150 W</span><br>
+          Conso annuelle : <span class="kwh">150 – 220 kWh/an</span><br>
+          <div class="note">Fonctionne en continu comme un petit frigo.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Radiateur électrique
+        <div class="tooltip">
+          <strong>Radiateur électrique (appoint)</strong><br>
+          Puissance : <span class="power">1 000 – 2 000 W</span><br>
+          Conso annuelle : <span class="kwh">400 – 1 200 kWh/an</span><br>
+          <div class="note">Dépend fortement de l’isolation et de la durée.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAMBRES -->
+  <div class="room">
+    <div class="room-title"><span>🛏️</span> Chambre(s)</div>
+    <div class="equip-list">
+      <div class="equip" tabindex="0">
+        TV chambre
+        <div class="tooltip">
+          <strong>Télévision chambre</strong><br>
+          Puissance : <span class="power">40 – 100 W</span><br>
+          Conso annuelle : <span class="kwh">40 – 80 kWh/an</span><br>
+          <div class="note">Usage plus faible que le salon (~1–2 h/jour).</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Ordinateur portable
+        <div class="tooltip">
+          <strong>Ordinateur portable</strong><br>
+          Puissance : <span class="power">30 – 90 W</span><br>
+          Conso annuelle : <span class="kwh">20 – 50 kWh/an</span><br>
+          <div class="note">Beaucoup plus économe qu’un PC fixe.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Chargeurs (téléphone, tablette…)
+        <div class="tooltip">
+          <strong>Chargeurs smartphone / tablette</strong><br>
+          Puissance : <span class="power">5 – 20 W</span><br>
+          Conso annuelle : <span class="kwh">5 – 15 kWh/an</span><br>
+          <div class="note">Impact très faible. Débrancher en veille reste utile.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Radiateur électrique
+        <div class="tooltip">
+          <strong>Radiateur chambre</strong><br>
+          Puissance : <span class="power">1 000 – 1 500 W</span><br>
+          Conso annuelle : <span class="kwh">300 – 900 kWh/an</span><br>
+          <div class="note">Baisser de 1 °C = ~7 % d’économie.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Lampe de chevet LED
+        <div class="tooltip">
+          <strong>Lampe de chevet</strong><br>
+          Puissance : <span class="power">3 – 10 W</span><br>
+          Conso annuelle : <span class="kwh">5 – 15 kWh/an</span><br>
+          <div class="note">Négligeable avec LED.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALLE DE BAIN / BUANDERIE -->
+  <div class="room">
+    <div class="room-title"><span>🛁</span> Salle de bain / Buanderie</div>
+    <div class="equip-list">
+      <div class="equip hot" tabindex="0">
+        Chauffe-eau électrique
+        <div class="tooltip">
+          <strong>Ballon d’eau chaude (200 L)</strong><br>
+          Puissance : <span class="power">1 500 – 3 000 W</span><br>
+          Conso annuelle : <span class="kwh">1 200 – 1 700 kWh/an</span><br>
+          <div class="note">2ᵉ poste le plus gourmand après le chauffage. Thermodynamique ≈ 600–800 kWh.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Lave-linge
+        <div class="tooltip">
+          <strong>Lave-linge (7–8 kg)</strong><br>
+          Puissance : <span class="power">1 500 – 2 500 W</span><br>
+          Conso annuelle : <span class="kwh">80 – 120 kWh/an</span><br>
+          <div class="note">~4 cycles/semaine. Laver à 30 °C divise la conso par 2.</div>
+        </div>
+      </div>
+      <div class="equip hot" tabindex="0">
+        Sèche-linge
+        <div class="tooltip">
+          <strong>Sèche-linge</strong><br>
+          Puissance : <span class="power">2 000 – 3 000 W</span> (condensation)<br>
+          Conso annuelle : <span class="kwh">180 – 350 kWh/an</span><br>
+          <div class="note">Pompe à chaleur ≈ 130–180 kWh. Gros poste si usage fréquent.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Sèche-cheveux
+        <div class="tooltip">
+          <strong>Sèche-cheveux</strong><br>
+          Puissance : <span class="power">1 200 – 2 200 W</span><br>
+          Conso annuelle : <span class="kwh">10 – 30 kWh/an</span><br>
+          <div class="note">Usage ponctuel → impact annuel faible.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Aspirateur
+        <div class="tooltip">
+          <strong>Aspirateur</strong><br>
+          Puissance : <span class="power">600 – 1 200 W</span><br>
+          Conso annuelle : <span class="kwh">15 – 40 kWh/an</span><br>
+          <div class="note">~1 h/semaine. Les robots consomment encore moins.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GARAGE -->
+  <div class="room">
+    <div class="room-title"><span>🚗</span> Garage / Stationnement</div>
+    <div class="equip-list">
+      <div class="equip hot" tabindex="0">
+        Voiture électrique (recharge)
+        <div class="tooltip">
+          <strong>Voiture électrique – recharge domicile</strong><br>
+          Puissance borne : <span class="power">3,7 – 7,4 kW</span> (Wallbox)<br>
+          Conso annuelle : <span class="kwh">2 000 – 3 000 kWh/an</span><br>
+          <div class="note">Pour ~12–15 000 km/an (15–18 kWh/100 km). En heures creuses = très rentable.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Chargeur / Wallbox
+        <div class="tooltip">
+          <strong>Wallbox / Chargeur</strong><br>
+          Puissance : <span class="power">3,7 kW (16A) ou 7,4 kW (32A)</span><br>
+          <div class="note">La puissance dépend de ton abonnement (souvent 9 ou 12 kVA recommandés).</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Éclairage garage
+        <div class="tooltip">
+          <strong>Éclairage garage</strong><br>
+          Puissance : <span class="power">10 – 40 W</span> (LED)<br>
+          Conso annuelle : <span class="kwh">10 – 30 kWh/an</span><br>
+          <div class="note">Détecteur de présence très utile.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Congélateur garage
+        <div class="tooltip">
+          <strong>Congélateur (garage)</strong><br>
+          Puissance : <span class="power">100 – 200 W</span><br>
+          Conso annuelle : <span class="kwh">200 – 350 kWh/an</span><br>
+          <div class="note">Attention au froid excessif en hiver (thermostat).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXTÉRIEUR / PISCINE / JACUZZI -->
+  <div class="room">
+    <div class="room-title"><span>🏊</span> Extérieur – Piscine & Jacuzzi</div>
+    <div class="equip-list">
+      <div class="equip hot" tabindex="0">
+        Pompe filtration piscine
+        <div class="tooltip">
+          <strong>Pompe de filtration piscine</strong><br>
+          Puissance : <span class="power">500 – 1 100 W</span><br>
+          Conso annuelle : <span class="kwh">1 000 – 2 000 kWh/an</span><br>
+          <div class="note">Règle : heures de filtration ≈ température eau ÷ 2. Pompe à vitesse variable = gros gain.</div>
+        </div>
+      </div>
+      <div class="equip hot" tabindex="0">
+        Chauffage piscine (PAC)
+        <div class="tooltip">
+          <strong>Pompe à chaleur piscine</strong><br>
+          Puissance : variable<br>
+          Conso annuelle : <span class="kwh">2 500 – 6 000 kWh/an</span><br>
+          <div class="note">Avec PAC (COP 4–6). Réchauffeur électrique direct = 2 à 3× plus.</div>
+        </div>
+      </div>
+      <div class="equip hot" tabindex="0">
+        Jacuzzi / Spa
+        <div class="tooltip">
+          <strong>Jacuzzi / Spa 4–6 places</strong><br>
+          Puissance chauffage : <span class="power">2 000 – 3 000 W</span><br>
+          Conso annuelle : <span class="kwh">2 000 – 5 000 kWh/an</span><br>
+          <div class="note">Isolation + couverture thermique = économie majeure (jusqu’à –50 %).</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Robot nettoyeur piscine
+        <div class="tooltip">
+          <strong>Robot de piscine</strong><br>
+          Puissance : <span class="power">100 – 200 W</span><br>
+          Conso annuelle : <span class="kwh">50 – 150 kWh/an</span><br>
+          <div class="note">Impact relativement faible.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Éclairage extérieur / LED piscine
+        <div class="tooltip">
+          <strong>Éclairage extérieur</strong><br>
+          Puissance : <span class="power">10 – 50 W</span><br>
+          Conso annuelle : <span class="kwh">30 – 80 kWh/an</span><br>
+          <div class="note">Détecteurs + LED = quasi négligeable.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAUFFAGE GLOBAL -->
+  <div class="room">
+    <div class="room-title"><span>🔥</span> Chauffage & Climatisation (maison)</div>
+    <div class="equip-list">
+      <div class="equip hot" tabindex="0">
+        Chauffage électrique (maison)
+        <div class="tooltip">
+          <strong>Chauffage tout électrique (maison)</strong><br>
+          Conso annuelle : <span class="kwh">3 500 – 6 000 kWh/an</span><br>
+          <div class="note">Le poste n°1 ! Dépend de l’isolation, surface et climat. Pompe à chaleur = –50 à –70 %.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        Climatisation / PAC air-air
+        <div class="tooltip">
+          <strong>Climatiseur / PAC air-air</strong><br>
+          Puissance : <span class="power">700 – 2 500 W</span><br>
+          Conso annuelle : <span class="kwh">200 – 1 000 kWh/an</span><br>
+          <div class="note">Très variable selon région et usage estival.</div>
+        </div>
+      </div>
+      <div class="equip" tabindex="0">
+        VMC
+        <div class="tooltip">
+          <strong>VMC (ventilation)</strong><br>
+          Puissance : <span class="power">15 – 50 W</span><br>
+          Conso annuelle : <span class="kwh">50 – 150 kWh/an</span><br>
+          <div class="note">Double flux = plus efficace énergétiquement.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Guide indicatif – Données moyennes ADEME & sources 2025-2026.<br>
+  Pour un suivi précis, utilise ton compteur Linky + espace client EDF / fournisseur ou un wattmètre.
+</footer>
+
+<script>
+  // Support mobile : toggle au clic
+  document.querySelectorAll('.equip').forEach(el => {
+    el.addEventListener('click', function(e) {
+      // Ferme les autres
+      document.querySelectorAll('.equip.active').forEach(a => {
+        if (a !== this) a.classList.remove('active');
+      });
+      this.classList.toggle('active');
+    });
+  });
+  // Ferme si on clique ailleurs
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.equip')) {
+      document.querySelectorAll('.equip.active').forEach(a => a.classList.remove('active'));
+    }
+  });
+</script>
+</body>
+</html>
